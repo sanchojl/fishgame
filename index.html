@@ -7,10 +7,9 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --sea-dark: #1e40af;
-            --sea-light: #3b82f6;
-            --sky-top: #0ea5e9;
-            --sky-bottom: #bae6fd;
+            --sea-dark: #1e3a8a;
+            --sea-mid: #2563eb;
+            --sea-light: #60a5fa;
             --gold: #fbbf24;
         }
 
@@ -18,216 +17,189 @@
         
         body {
             margin: 0; padding: 0;
-            background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
-            color: white; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0ea5e9; /* Чистое небо */
+            color: white; font-family: 'Segoe UI', sans-serif;
             text-align: center; overflow: hidden; height: 100vh;
             display: flex; flex-direction: column;
         }
 
         /* Шапка */
         #header { 
-            padding: 25px 15px; 
-            background: rgba(15, 23, 42, 0.8); 
-            backdrop-filter: blur(5px);
-            z-index: 50; 
-            border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding: 20px 10px; 
+            background: rgba(15, 23, 42, 0.9); 
+            z-index: 100; 
+            border-bottom: 3px solid var(--gold);
         }
         #status { 
-            font-size: 20px; 
-            font-weight: 800; 
-            color: var(--gold);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            letter-spacing: 0.5px;
+            font-size: 19px; font-weight: 900; color: var(--gold);
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
         /* Игровой мир */
         #world {
             position: relative;
             flex-grow: 1;
-            overflow: hidden;
+            background: linear-gradient(180deg, #7dd3fc 0%, #2563eb 100%);
             display: flex;
             flex-direction: column;
+            justify-content: flex-end; /* Все элементы прижимаем вниз */
         }
 
-        /* Облака */
-        .cloud {
-            position: absolute; background: white; border-radius: 50px;
-            opacity: 0.8; animation: moveCloud linear infinite;
-        }
-        @keyframes moveCloud {
-            from { left: -150px; } to { left: 110%; }
-        }
-
-        /* Море */
+        /* Море с анимацией волн */
         #sea {
-            position: relative;
-            height: 65%;
-            background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
-            border-top: 5px solid rgba(255,255,255,0.4);
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.2);
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 75%;
+            background: var(--sea-mid);
+            overflow: hidden;
+            box-shadow: inset 0 10px 50px rgba(0,0,0,0.4);
         }
 
-        /* Камыши на фоне */
-        .reeds {
-            position: absolute; bottom: 100%; left: 0; width: 100%; height: 40px;
-            display: flex; justify-content: space-around; align-items: flex-end;
-            z-index: 5;
+        /* Декоративные волны */
+        .wave {
+            position: absolute; bottom: 0; left: 0; width: 200%; height: 100%;
+            background: url('https://svgshare.com/i/zeS.svg'); /* Прозрачный паттерн волн */
+            opacity: 0.2;
+            animation: moveWaves 10s linear infinite;
         }
-        .reed {
-            width: 4px; height: 35px; background: #166534; border-radius: 4px;
-            transform-origin: bottom; animation: sway 3s infinite ease-in-out;
-        }
-        @keyframes sway {
-            0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); }
+        @keyframes moveWaves {
+            from { transform: translateX(0); } to { transform: translateX(-50%); }
         }
 
-        /* Лодка и Дед */
+        /* Лодка и Дед (теперь снизу!) */
         #boat-container {
-            position: absolute; top: -35px; left: 15%;
+            position: absolute; 
+            bottom: 20px; /* Над кнопкой */
+            left: 10%;
             animation: boatRock 4s infinite ease-in-out;
-            z-index: 20;
+            z-index: 50;
         }
         #boat {
-            width: 150px; height: 45px;
-            background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
-            border-radius: 5px 5px 60px 60px;
+            width: 180px; height: 55px;
+            background: linear-gradient(180deg, #5d4037 0%, #3e2723 100%);
+            border-radius: 5px 5px 80px 80px;
             position: relative;
-            border-top: 3px solid #92400e;
+            border-top: 4px solid #795548;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
         #oldman {
-            position: absolute; bottom: 42px; left: 35px;
-            width: 40px; height: 50px; background: #1e293b;
+            position: absolute; bottom: 50px; left: 45px;
+            width: 45px; height: 55px; background: #263238;
             border-radius: 50% 50% 10px 10px;
         }
-        #oldman::before { /* Кепка */
-            content: ''; position: absolute; top: -15px; left: 5px;
-            width: 30px; height: 15px; background: #991b1b; border-radius: 20px 20px 0 0;
-        }
-        #oldman::after { /* Лицо/Голова */
-            content: ''; position: absolute; top: -10px; left: 8px;
-            width: 24px; height: 24px; background: #334155; border-radius: 50%;
+        #oldman::after { /* Голова */
+            content: ''; position: absolute; top: -12px; left: 10px;
+            width: 26px; height: 26px; background: #455a64; border-radius: 50%;
+            border: 2px solid #263238;
         }
 
-        /* Удочка */
+        /* Удочка (смотрит вверх-вправо) */
         #rod {
-            position: absolute; width: 4px; height: 170px;
-            background: #27272a; bottom: 35px; left: 110px;
-            transform-origin: bottom center; transform: rotate(65deg);
+            position: absolute; width: 5px; height: 200px;
+            background: #212121; bottom: 40px; left: 130px;
+            transform-origin: bottom center; transform: rotate(40deg);
             border-radius: 2px;
+            z-index: 60;
         }
 
         /* Леска */
         #line {
-            position: absolute; width: 1px; background: rgba(255,255,255,0.5);
+            position: absolute; width: 1px; background: rgba(255,255,255,0.7);
             top: 0; left: 2px; transform-origin: top center;
-            display: none; z-index: 15;
+            display: none; z-index: 45;
         }
 
-        /* Поплавок и круги */
+        /* Поплавок */
         #float-zone {
-            position: absolute; left: 65%; top: 55%; transform: translate(-50%, -50%);
-            display: none; z-index: 25;
+            position: absolute; left: 70%; top: 40%; transform: translate(-50%, -50%);
+            display: none; z-index: 40;
         }
         #float {
-            width: 12px; height: 40px;
-            background: linear-gradient(to bottom, #ef4444 40%, #fff 40%, #fff 60%, #ef4444 60%);
-            border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 14px; height: 45px;
+            background: linear-gradient(to bottom, #ff5252 40%, #fff 40%, #fff 60%, #ff5252 60%);
+            border-radius: 7px; box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
         .water-ring {
-            position: absolute; top: 80%; left: 50%; transform: translate(-50%, -50%);
-            width: 20px; height: 10px; border: 2px solid rgba(255,255,255,0.3);
+            position: absolute; top: 85%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; height: 10px; border: 2px solid rgba(255,255,255,0.4);
             border-radius: 50%; animation: ring 2s infinite;
         }
         @keyframes ring {
             from { width: 10px; height: 5px; opacity: 1; }
-            to { width: 60px; height: 30px; opacity: 0; }
+            to { width: 80px; height: 40px; opacity: 0; }
         }
 
         .bobbing { animation: floatBob 2.5s infinite ease-in-out; }
-        @keyframes floatBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
-        .bite { animation: franticShake 0.1s infinite alternate; }
-        @keyframes franticShake { from { transform: translate(-2px, 15px); } to { transform: translate(2px, 20px); } }
+        @keyframes floatBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+        .bite { animation: intenseBite 0.15s infinite; }
+        @keyframes intenseBite { from { transform: translateY(15px); } to { transform: translateY(25px); } }
 
         /* Золотой Пеленгас */
         #goldfish {
-            position: absolute; width: 55px; height: 25px;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            border-radius: 50% 80% 80% 50%; bottom: -50px; z-index: 30;
-            opacity: 0; filter: drop-shadow(0 0 10px var(--gold));
+            position: absolute; width: 60px; height: 30px;
+            background: linear-gradient(135deg, #ffca28 0%, #ff8f00 100%);
+            border-radius: 50% 80% 80% 50%; bottom: -50px; z-index: 35;
+            opacity: 0; filter: drop-shadow(0 0 15px var(--gold));
         }
-        #goldfish::after { /* Хвост */
-            content: ''; position: absolute; right: -12px; top: 5px;
-            border-top: 8px solid transparent; border-bottom: 8px solid transparent;
-            border-right: 18px solid #f59e0b;
+        #goldfish::after {
+            content: ''; position: absolute; right: -15px; top: 7px;
+            border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+            border-right: 20px solid #ff8f00;
         }
 
-        .fish-jump { animation: jumpPro 2.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards; }
+        .fish-jump { animation: jumpPro 3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes jumpPro {
             0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
             20% { opacity: 1; }
-            50% { transform: translate(50px, -150px) rotate(-20deg); opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(100px, 0) rotate(20deg); opacity: 0; }
+            50% { transform: translate(-80px, -180px) rotate(-30deg); opacity: 1; }
+            100% { transform: translate(-160px, 0) rotate(30deg); opacity: 0; }
         }
 
         /* Кнопка */
         #btn-action {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(180deg, #ff9800 0%, #e65100 100%);
             color: white; border: none; padding: 25px;
-            font-size: 22px; font-weight: 900; width: 100%;
-            cursor: pointer; transition: 0.2s;
-            text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+            font-size: 24px; font-weight: 900; width: 100%;
+            cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            z-index: 200; position: relative;
         }
-        #btn-action:active { transform: scale(0.98); filter: brightness(1.1); }
-
-        /* Эффект победы */
-        .win-flash {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            pointer-events: none; z-index: 100;
-            background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%);
-            display: none;
-        }
+        #btn-action:active { filter: brightness(1.2); transform: translateY(2px); }
 
         @keyframes boatRock {
-            0%, 100% { transform: rotate(-1.5deg) translateY(0); }
-            50% { transform: rotate(1.5deg) translateY(4px); }
+            0%, 100% { transform: rotate(-2deg) translateY(0); }
+            50% { transform: rotate(2deg) translateY(5px); }
         }
     </style>
 </head>
 <body>
 
     <div id="header">
-        <div id="status">Забрасывай, старик! Вечерний клёв пошёл.</div>
+        <div id="status">Старик на месте. Ждём трофей!</div>
     </div>
     
     <div id="world">
-        <div class="reeds" id="reeds-box"></div>
-
         <div id="sea">
-            <div id="boat-container">
-                <div id="oldman"></div>
-                <div id="boat"></div>
-                <div id="rod"><div id="line"></div></div>
-            </div>
+            <div class="wave"></div>
+            <div id="goldfish"></div>
 
             <div id="float-zone">
                 <div class="water-ring"></div>
                 <div id="float"></div>
             </div>
-            
-            <div id="goldfish"></div>
+        </div>
+
+        <div id="boat-container">
+            <div id="oldman"></div>
+            <div id="boat"></div>
+            <div id="rod"><div id="line"></div></div>
         </div>
     </div>
 
-    <div class="win-flash" id="win-fx"></div>
-
-    <button id="btn-action">Забросить снасть</button>
+    <button id="btn-action">ЗАБРОСИТЬ СНАСТЬ</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
         
         const MAKE_WEBHOOK_URL = 'https://hook.eu1.make.com/7nuhjsgcpkj7cjpkm63gjmkj75jc8njl';
 
@@ -237,33 +209,9 @@
         const lineEl = document.getElementById('line');
         const goldfishEl = document.getElementById('goldfish');
         const btnAction = document.getElementById('btn-action');
-        const winFx = document.getElementById('win-fx');
 
         let gameState = 'idle';
         let biteTimeout, escapeTimeout;
-
-        // Генерация декораций
-        function setupWorld() {
-            const reedsBox = document.getElementById('reeds-box');
-            for(let i=0; i<30; i++) {
-                const r = document.createElement('div');
-                r.className = 'reed';
-                r.style.height = (20 + Math.random() * 25) + 'px';
-                r.style.animationDelay = (Math.random() * 2) + 's';
-                reedsBox.appendChild(r);
-            }
-            for(let i=0; i<3; i++) {
-                const c = document.createElement('div');
-                c.className = 'cloud';
-                c.style.width = (100 + Math.random() * 100) + 'px';
-                c.style.height = '40px';
-                c.style.top = (50 + Math.random() * 100) + 'px';
-                c.style.animationDuration = (20 + Math.random() * 20) + 's';
-                c.style.animationDelay = -(Math.random() * 20) + 's';
-                document.getElementById('world').appendChild(c);
-            }
-        }
-        setupWorld();
 
         function updateLine() {
             if (gameState === 'idle' || gameState === 'finished') {
@@ -274,14 +222,15 @@
             
             const rodRect = document.getElementById('rod').getBoundingClientRect();
             const floatRect = floatEl.getBoundingClientRect();
+            const worldRect = document.getElementById('world').getBoundingClientRect();
             
-            // Кончик удочки (геометрия)
-            const rodAngle = 65 * Math.PI / 180;
-            const rodLen = 170;
+            // Математика кончика удочки
+            const angle = 40 * Math.PI / 180;
+            const rodLen = 200;
             const x1 = rodRect.left + 2;
-            const y1 = rodRect.bottom - (rodLen * Math.cos(rodAngle));
+            const y1 = rodRect.bottom - (rodLen * Math.cos(angle));
 
-            const x2 = floatRect.left + 6;
+            const x2 = floatRect.left + 7;
             const y2 = floatRect.top;
 
             const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
@@ -289,11 +238,13 @@
 
             lineEl.style.height = length + 'px';
             lineEl.style.transform = `rotate(${lineAngle - 90}deg)`;
-            lineEl.style.top = '-1px'; 
+            
+            // Коррекция позиции относительно контейнера
+            lineEl.style.top = (y1 - rodRect.top) + 'px';
             lineEl.style.left = '2px';
         }
 
-        setInterval(updateLine, 30);
+        setInterval(updateLine, 20);
 
         btnAction.addEventListener('click', () => {
             if (gameState === 'idle') {
@@ -301,7 +252,7 @@
             } else if (gameState === 'biting') {
                 catchFish();
             } else if (gameState === 'waiting') {
-                finishGame("Эх, спугнул! Рано подсек.");
+                finishGame("Эх, сорвался! Не спеши, старик.");
             } else if (gameState === 'finished') {
                 tg.close();
             }
@@ -310,8 +261,8 @@
         function startFishing() {
             gameState = 'waiting';
             btnAction.innerText = "ПОДСЕКАЙ!";
-            btnAction.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
-            statusEl.innerText = "Поплавок на воде. Ждём поклёвку...";
+            btnAction.style.background = "#d32f2f";
+            statusEl.innerText = "Снасть в воде... Тишина...";
             floatZone.style.display = 'block';
             floatEl.className = 'bobbing';
             
@@ -319,26 +270,25 @@
             biteTimeout = setTimeout(() => {
                 gameState = 'biting';
                 floatEl.className = 'bite';
-                statusEl.innerText = "КЛЮЁТ! ТЯНИ ПЕЛЕНГАСА!";
+                statusEl.innerText = "КЛЮЁТ! ТЯНИ!!!";
                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
 
                 escapeTimeout = setTimeout(() => {
-                    if (gameState === 'biting') finishGame("Ушёл косяк... Наживку сбили.");
-                }, 700);
+                    if (gameState === 'biting') finishGame("Ушёл пеленгас... Наживку съел.");
+                }, 800);
             }, timeToBite);
         }
 
         function catchFish() {
             clearTimeout(escapeTimeout);
             const roll = Math.random();
-            if (roll > 0.94) {
-                winFx.style.display = 'block';
+            if (roll > 0.95) {
                 sendWin();
-                finishGame("🏆 ЗОЛОТОЙ ПЕЛЕНГАС! Вот это удача!");
+                finishGame("🏆 ЗОЛОТОЙ ПЕЛЕНГАС! ВОТ ЭТО УЛОВ!");
             } else if (roll > 0.4) {
-                finishGame("🐟 Есть пеленгас! Увесистый достался.");
+                finishGame("🐟 Есть пеленгас! Хорошая рыба.");
             } else {
-                finishGame("👟 Старый сапог... Канал почистил.");
+                finishGame("👟 Старый ботинок... Бывает и такое.");
             }
         }
 
@@ -359,21 +309,22 @@
             clearTimeout(escapeTimeout);
             statusEl.innerText = msg;
             floatZone.style.display = 'none';
-            btnAction.innerText = "Вернуться в канал";
-            btnAction.style.background = "#0f172a";
-            if(msg.includes("🏆")) btnAction.style.background = "#059669";
+            btnAction.innerText = "В КАНАЛ";
+            btnAction.style.background = "#263238";
+            if(msg.includes("🏆")) btnAction.style.background = "#2e7d32";
         }
 
-        function triggerFishJump() {
+        // Прыжки рыбы
+        function triggerJump() {
             if (gameState !== 'idle' || goldfishEl.classList.contains('fish-jump')) return;
-            goldfishEl.style.left = (40 + Math.random() * 40) + '%';
+            goldfishEl.style.left = (60 + Math.random() * 20) + '%';
             goldfishEl.classList.add('fish-jump');
             setTimeout(() => {
                 goldfishEl.classList.remove('fish-jump');
-                setTimeout(triggerFishJump, Math.random() * 15000 + 10000);
-            }, 2500);
+                setTimeout(triggerJump, Math.random() * 15000 + 10000);
+            }, 3000);
         }
-        setTimeout(triggerFishJump, 5000);
+        setTimeout(triggerJump, 5000);
     </script>
 </body>
 </html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Рыбалка в Канале: Золотая Рыбка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none; /* Отключаем выделение текста на мобилках */
+            user-select: none;
+        }
+        body {
+            margin: 0; padding: 0;
+            background: linear-gradient(180deg, #1a365d 0%, #0f172a 100%);
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+        }
+        
+        /* Шапка игры */
+        #header-zone {
+            padding: 25px 15px;
+        }
+        #status {
+            font-size: 22px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #38bdf8;
+            min-height: 60px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /* Игровое поле (Вода) */
+        #game-screen {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            background: radial-gradient(circle at 50% 30%, #1e40af 0%, transparent 70%);
+        }
+        
+        /* Поплавок */
+        #float {
+            width: 24px;
+            height: 70px;
+            background: linear-gradient(to bottom, #ef4444 40%, #ffffff 40%, #ffffff 60%, #ef4444 60%);
+            border-radius: 12px;
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            transition: top 0.1s ease-in-out;
+        }
+        
+        /* Анимации поплавка */
+        .bobbing {
+            animation: gentleBob 2.5s infinite ease-in-out;
+        }
+        @keyframes gentleBob {
+            0%, 100% { top: 45%; transform: translate(-50%, -50%) rotate(0deg); }
+            50% { top: 47%; transform: translate(-50%, -50%) rotate(2deg); }
+        }
+        .bite {
+            top: 65% !important;
+            animation: franticBite 0.2s infinite alternate;
+        }
+        @keyframes franticBite {
+            0% { transform: translate(-50%, -50%) rotate(-3deg); }
+            100% { transform: translate(-50%, -50%) rotate(3deg); }
+        }
+
+        /* Кнопка действия */
+        #action-container {
+            padding: 30px 20px;
+        }
+        #btn-action {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            border: none;
+            padding: 22px;
+            font-size: 22px;
+            font-weight: 700;
+            border-radius: 18px;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+            touch-action: manipulation;
+            transition: background 0.2s;
+        }
+        #btn-action:active {
+            transform: scale(0.98);
+            box-shadow: 0 3px 10px rgba(234, 88, 12, 0.4);
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="header-zone">
+        <div id="status">Готов к рыбалке?</div>
+    </div>
+    
+    <div id="game-screen">
+        <div id="float" class="hidden"></div>
+    </div>
+
+    <div id="action-container">
+        <button id="btn-action">ЗАБРОСИТЬ УДОЧКУ</button>
+    </div>
+
+    <script>
+        // ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем приложение на максимум
+        tg.ready();
+
+        // КОНФИГУРАЦИЯ (ВСТАВЬ СВОЙ URL ИЗ MAKE.COM СЮДА)
+        const MAKE_WEBHOOK_URL = 'https://hook.eu1.make.com/7nuhjsgcpkj7cjpkm63gjmkj75jc8njl';
+
+        const statusEl = document.getElementById('status');
+        const floatEl = document.getElementById('float');
+        const btnAction = document.getElementById('btn-action');
+
+        let gameState = 'idle'; // Доступные состояния: idle, waiting, biting, finished
+        let biteTimeout;
+        let escapeTimeout;
+
+        btnAction.addEventListener('click', () => {
+            if (gameState === 'idle') {
+                startFishing();
+            } else if (gameState === 'waiting') {
+                finishGame("Рано подсек! Рыба уплыла.");
+            } else if (gameState === 'biting') {
+                evaluateCatch();
+            } else if (gameState === 'finished') {
+                tg.close(); // Кнопка закрывает Mini App и возвращает в канал
+            }
+        });
+
+        function startFishing() {
+            gameState = 'waiting';
+            btnAction.innerText = "ПОДСЕКАЙ!";
+            btnAction.style.background = "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)";
+            btnAction.style.boxShadow = "0 6px 20px rgba(220, 38, 38, 0.4)";
+            statusEl.innerText = "Внимательно следи за поплавком...";
+            statusEl.style.color = "#e2e8f0";
+            
+            floatEl.classList.remove('hidden', 'bite');
+            floatEl.classList.add('bobbing');
+
+            // Рандомный интервал ожидания поклевки от 2.5 до 6 секунд
+            const timeToBite = Math.floor(Math.random() * 3500) + 2500;
+            
+            biteTimeout = setTimeout(() => {
+                gameState = 'biting';
+                floatEl.classList.remove('bobbing');
+                floatEl.classList.add('bite'); // Поплавок резко уходит под воду
+                statusEl.innerText = "КЛЮЕТ!!! ПОДСЕКАЙ!!!";
+                statusEl.style.color = "#f43f5e";
+                
+                // Тактильный отклик (вибрация) — работает на смартфонах внутри TG
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('heavy');
+                }
+
+                // Окно реакции игрока — ровно 750 миллисекунд, потом сход
+                escapeTimeout = setTimeout(() => {
+                    if (gameState === 'biting') {
+                        finishGame("Эх, опоздал... Рыба сорвала наживку.");
+                    }
+                }, 750);
+            }, timeToBite);
+        }
+
+        function evaluateCatch() {
+            clearTimeout(escapeTimeout);
+            
+            // Шансы распределения улова:
+            // 5% — Золотая рыбка (Победа), 60% — Обычная рыба, 35% — Сапог/Трава
+            const roll = Math.random();
+            
+            if (roll > 0.95) {
+                // ПОБЕДА! Сорвал джекпот
+                sendWinnerData();
+                finishGame("🏆 ТЫ ПОЙМАЛ ЗОЛОТУЮ РЫБКУ! БОНУС ТВОЙ!");
+                btnAction.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+                btnAction.style.boxShadow = "0 6px 20px rgba(22, 163, 74, 0.4)";
+            } else if (roll > 0.35) {
+                finishGame("🐟 Поймал крупного Карася! Хорош!");
+            } else {
+                finishGame("🌿 Вытащил пучок морских водорослей...");
+            }
+        }
+
+        function sendWinnerData() {
+            // Безопасно вытаскиваем данные пользователя из Телеграма
+            const userData = tg.initDataUnsafe?.user;
+            
+            if (!userData) {
+                console.error("Не удалось прочитать данные пользователя TG");
+                return;
+            }
+
+            // Отправляем POST запрос прямо на вебхук Make.com
+            fetch(MAKE_WEBHOOK_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user_id: userData.id,
+                    username: userData.username || "нет_username",
+                    first_name: userData.first_name || "Рыбак",
+                    event: "goldfish_win",
+                    timestamp: Math.floor(Date.now() / 1000)
+                })
+            })
+            .then(res => console.log("Данные успешно улетели в Make!"))
+            .catch(err => console.error("Ошибка отправки вебхука:", err));
+        }
+
+        function finishGame(message) {
+            gameState = 'finished';
+            clearTimeout(biteTimeout);
+            clearTimeout(escapeTimeout);
+            
+            statusEl.innerText = message;
+            if(!message.includes("🏆")) {
+                statusEl.style.color = "#94a3b8";
+                btnAction.style.background = "linear-gradient(135deg, #64748b 0%, #475569 100%)";
+                btnAction.style.boxShadow = "0 6px 20px rgba(71, 85, 105, 0.4)";
+            }
+            
+            floatEl.classList.add('hidden');
+            btnAction.innerText = "ВЕРНУТЬСЯ В КАНАЛ";
+        }
+    </script>
+</body>
+</html>

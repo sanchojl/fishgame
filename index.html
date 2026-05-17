@@ -202,30 +202,38 @@
         }
 
         function sendWinnerData() {
-            // Безопасно вытаскиваем данные пользователя из Телеграма
+            // Базовые тестовые данные (если открыли не через Web App кнопку)
+            let finalUserId = 123456789;
+            let finalUsername = "TestRybak";
+            let finalFirstName = "Тестовый Рыбак";
+
+            // Пытаемся получить реальные данные Телеграма
             const userData = tg.initDataUnsafe?.user;
             
-            if (!userData) {
-                console.error("Не удалось прочитать данные пользователя TG");
-                return;
+            if (userData) {
+                finalUserId = userData.id;
+                finalUsername = userData.username || "нет_username";
+                finalFirstName = userData.first_name || "Рыбак";
+            } else {
+                alert("Внимание: открыто не как Web App. Отправляем тестовые данные в Make!");
             }
 
-            // Отправляем POST запрос прямо на вебхук Make.com
+            // Отправляем POST запрос на вебхук Make.com
             fetch(MAKE_WEBHOOK_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    user_id: userData.id,
-                    username: userData.username || "нет_username",
-                    first_name: userData.first_name || "Рыбак",
+                    user_id: finalUserId,
+                    username: finalUsername,
+                    first_name: finalFirstName,
                     event: "goldfish_win",
                     timestamp: Math.floor(Date.now() / 1000)
                 })
             })
-            .then(res => console.log("Данные успешно улетели в Make!"))
-            .catch(err => console.error("Ошибка отправки вебхука:", err));
+            .then(res => console.log("Данные улетели в Make!"))
+            .catch(err => console.error("Ошибка отправки:", err));
         }
 
         function finishGame(message) {

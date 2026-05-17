@@ -188,14 +188,14 @@
             // 5% — Золотая рыбка (Победа), 60% — Обычная рыба, 35% — Сапог/Трава
             const roll = Math.random();
             
-            if (roll > 0.0) {
+            if (roll > 0.95) {
                 // ПОБЕДА! Сорвал джекпот
                 sendWinnerData();
                 finishGame("🏆 ТЫ ПОЙМАЛ ЗОЛОТУЮ РЫБКУ! БОНУС ТВОЙ!");
                 btnAction.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
                 btnAction.style.boxShadow = "0 6px 20px rgba(22, 163, 74, 0.4)";
             } else if (roll > 0.35) {
-                finishGame("🐟 Поймал крупного Карася! Хорош!");
+                finishGame("🐟 Поймал крупного Пеленгаса! Хорош!");
             } else {
                 finishGame("🌿 Вытащил пучок морских водорослей...");
             }

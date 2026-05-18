@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Рынок Улова: Выложить</title>
+    <title>Рынок Улова: Крым</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -16,7 +16,7 @@
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg); 
             margin: 0; padding: 16px; color: var(--text);
             display: flex; flex-direction: column; align-items: center;
@@ -32,63 +32,37 @@
             border: 1px solid rgba(251, 191, 36, 0.1);
         }
 
-        h2 { 
-            margin: 0 0 20px 0; font-size: 24px; text-align: center; 
-            color: var(--accent); letter-spacing: 1px; text-transform: uppercase;
-        }
+        h2 { margin: 0 0 20px 0; font-size: 24px; text-align: center; color: var(--accent); text-transform: uppercase; }
 
-        label { 
-            display: block; margin: 15px 0 8px 4px; 
-            font-size: 14px; font-weight: 600; color: #94a3b8;
-        }
+        label { display: block; margin: 15px 0 8px 4px; font-size: 14px; font-weight: 600; color: #94a3b8; }
 
-        /* Стиль зоны загрузки фото */
         .photo-upload {
             border: 2px dashed var(--input-border);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            background: #0f172a;
-            transition: 0.3s;
-            margin-bottom: 10px;
+            border-radius: 12px; padding: 20px; text-align: center;
+            cursor: pointer; background: #0f172a; margin-bottom: 10px;
         }
-        .photo-upload:active { border-color: var(--accent); background: rgba(251, 191, 36, 0.05); }
+
         #preview { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
-        .upload-icon { font-size: 24px; display: block; margin-bottom: 5px; }
 
         select, input, textarea { 
-            width: 100%; padding: 14px; 
-            background: #0f172a; border: 2px solid var(--input-border);
-            border-radius: 12px; color: white; font-size: 16px; 
-            box-sizing: border-box; transition: 0.3s; outline: none;
+            width: 100%; padding: 14px; background: #0f172a; 
+            border: 2px solid var(--input-border); border-radius: 12px; 
+            color: white; font-size: 16px; box-sizing: border-box; outline: none;
         }
 
-        select:focus, input:focus, textarea:focus { 
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
-        }
+        select:focus, input:focus, textarea:focus { border-color: var(--accent); }
 
         .btn { 
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            color: white; border: none; padding: 18px; 
-            width: 100%; border-radius: 14px; font-size: 18px; 
-            font-weight: 800; cursor: pointer; margin-top: 25px;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-            transition: 0.2s; text-transform: uppercase;
+            color: white; border: none; padding: 18px; width: 100%;
+            border-radius: 14px; font-size: 18px; font-weight: 800;
+            cursor: pointer; margin-top: 25px; text-transform: uppercase;
         }
 
-        .btn:disabled { background: #475569; box-shadow: none; cursor: not-allowed; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn:disabled { background: #475569; opacity: 0.6; }
 
-        .footer-info { 
-            margin-top: 20px; font-size: 11px; 
-            color: #64748b; text-align: center; line-height: 1.4;
-        }
-
+        .footer-info { margin-top: 20px; font-size: 11px; color: #64748b; text-align: center; }
         .accent-text { color: var(--accent); font-weight: bold; }
-
-        select { appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/1999/xlink" viewBox="0 0 256 256" fill="white"><path d="M225.8,98.2l-91,91c-2.4,2.4-5.6,3.8-9,3.8s-6.6-1.4-9-3.8l-91-91c-5-5-5-13,0-18s13-5,18,0l82,82l82-82c5-5,13-5,18,0S230.8,93.2,225.8,98.2z"/></svg>'); background-repeat: no-repeat; background-position: right 15px center; background-size: 15px; }
     </style>
 </head>
 <body>
@@ -99,8 +73,8 @@
             
             <label>Фото улова (обязательно)</label>
             <div class="photo-upload" onclick="document.getElementById('file-input').click()">
-                <span class="upload-icon">📸</span>
-                <span id="upload-text">Нажми, чтобы прикрепить фото</span>
+                <span id="upload-icon">📸</span>
+                <span id="upload-text">Нажми, чтобы выбрать фото</span>
                 <input type="file" id="file-input" accept="image/*" style="display:none" onchange="compressImage(this)">
                 <img id="preview" src="" alt="Предпросмотр">
             </div>
@@ -111,33 +85,31 @@
                 <option value="Кефаль">Кефаль</option>
                 <option value="Ставрида">Ставрида</option>
                 <option value="Барабуля">Барабуля</option>
-                <option value="Рапаны">Рапаны</option>
-                <option value="Другое">Другое (указать в описании)</option>
+                <option value="Другое">Другое</option>
             </select>
 
             <label>Цена за кг (руб)</label>
             <input type="number" id="price" placeholder="Напр: 350" inputmode="numeric">
 
-            <label>Описание / Место вылова</label>
-            <textarea id="desc" rows="3" placeholder="Напр: Керчь, утренний вылов. Очень свежий!"></textarea>
+            <label>Описание</label>
+            <textarea id="desc" rows="3" placeholder="Где и когда поймали?"></textarea>
 
             <button class="btn" id="submit-btn" onclick="sendToMarket()">Выложить на биржу</button>
 
             <div class="footer-info">
-                Ваше объявление получит статус <span class="accent-text">АКТИВНО</span>.<br>
-                Покупатели свяжутся с вами через <span class="accent-text">личные сообщения</span>.
+                Ваше объявление получит статус <span class="accent-text">АКТИВНО</span>.
             </div>
         </div>
     </div>
 
     <script>
+        // Инициализация WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
         let base64Photo = "";
 
-        // Сжатие картинки
+        // Функция сжатия
         function compressImage(input) {
             const file = input.files[0];
             if (!file) return;
@@ -147,7 +119,6 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
                     const MAX_WIDTH = 800;
                     let width = img.width;
                     let height = img.height;
@@ -156,69 +127,88 @@
                         height *= MAX_WIDTH / width;
                         width = MAX_WIDTH;
                     }
-
                     canvas.width = width;
                     canvas.height = height;
+                    const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
                     base64Photo = canvas.toDataURL('image/jpeg', 0.7);
                     document.getElementById('preview').src = base64Photo;
                     document.getElementById('preview').style.display = 'block';
                     document.getElementById('upload-text').style.display = 'none';
-                    document.querySelector('.upload-icon').style.display = 'none';
+                    document.getElementById('upload-icon').style.display = 'none';
                 }
                 img.src = e.target.result;
             }
             reader.readAsDataURL(file);
         }
 
-        function sendToMarket() {
-            alert("Кнопка нажата! Начинаю проверку..."); // ДОБАВЬ ЭТО
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        // ГЛАВНАЯ ФУНКЦИЯ
+        async function sendToMarket() {
+            try {
+                // 1. Проверяем нажатие
+                console.log("Кнопка нажата");
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            const btn = document.getElementById('submit-btn');
-            
-            const data = {
-                date: new Date().toLocaleDateString('ru-RU'),
-                seller_name: tg.initDataUnsafe.user?.first_name || "Рыбак",
-                username: tg.initDataUnsafe.user?.username || "нет_имени",
-                fish_type: document.getElementById('fish').value,
-                price: document.getElementById('price').value,
-                location_desc: document.getElementById('desc').value,
-                image: base64Photo, // ФОТО ТУТ
-                status: "Активно"
-            };
+                const btn = document.getElementById('submit-btn');
+                const price = document.getElementById('price').value;
+                const fish = document.getElementById('fish').value;
+                const desc = document.getElementById('desc').value;
 
-            if (!base64Photo) {
-                tg.showAlert("Бро, без фото пеленгаса никто не купит! Прикрепи картинку.");
-                return;
-            }
+                // 2. Валидация
+                if (!base64Photo) {
+                    alert("Бро, прикрепи фото рыбы!");
+                    return;
+                }
 
-            if (!data.price || data.price <= 0) {
-                tg.showAlert("Укажи цену!");
-                return;
-            }
+                if (!price || price <= 0) {
+                    alert("Укажи цену!");
+                    return;
+                }
 
-            if (data.username === "нет_имени") {
-                tg.showAlert("Задай @username в настройках ТГ!");
-                return;
-            }
+                // Собираем данные безопасно
+                const user = tg.initDataUnsafe?.user;
+                const data = {
+                    date: new Date().toLocaleDateString('ru-RU'),
+                    seller_name: user?.first_name || "Рыбак (Браузер)",
+                    username: user?.username || "no_username",
+                    fish_type: fish,
+                    price: price,
+                    location_desc: desc,
+                    image: base64Photo,
+                    status: "Активно"
+                };
 
-            btn.disabled = true;
-            btn.innerText = "ОТПРАВЛЯЮ...";
+                // Проверка на username
+                if (data.username === "no_username" && tg.initDataUnsafe?.user) {
+                    alert("Задай @username в настройках Telegram!");
+                    return;
+                }
 
-            fetch('https://hook.eu1.make.com/g7ub47urk13e10g3vbgm635udv2udk4l', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            }).then(() => {
-                tg.showAlert("Красава! Свежак уже в канале.");
-                tg.close();
-            }).catch(err => {
-                tg.showAlert("Ошибка! Проверь сеть.");
+                // Блокируем кнопку
+                btn.disabled = true;
+                btn.innerText = "ОТПРАВЛЯЮ...";
+
+                // 3. ОТПРАВКА
+                const response = await fetch('https://hook.eu1.make.com/g7ub47urk13e10g3vbgm635udv2udk4l', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert("Красава! Рыба на рынке.");
+                    tg.close();
+                } else {
+                    throw new Error("Сервер Make.com вернул ошибку");
+                }
+
+            } catch (error) {
+                alert("Ошибка: " + error.message);
+                const btn = document.getElementById('submit-btn');
                 btn.disabled = false;
-                btn.innerText = "Выложить на Рынок";
-            });
+                btn.innerText = "Выложить на рынок";
+            }
         }
     </script>
 </body>

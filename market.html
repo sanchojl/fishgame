@@ -132,21 +132,28 @@
     tg.ready();
     tg.expand();
 
-    // Твои настройки
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSHexoh9i-MP0akfd5O_1q_wtTjJDuC5x22MXWXV5t_1-cXV5HsKg6ks0P2fj7HXdhGzTpIO_H2Vqck/pub?output=csv';
     const WEBHOOK_REG = 'https://hook.eu1.make.com/g7ub47urk13e10g3vbgm635udv2udk4l';
     const WEBHOOK_SAVE = 'https://hook.eu1.make.com/ua35ta44c98q2o9gnyfc8c8sr1qzcksy'; 
 
     let base64Photo = "";
 
-    // Умный парсер CSV (защита от запятых внутри текста)
+    // Умный парсер CSV (защита от запятых и пустых колонок)
     function parseCSV(text) {
         const rows = [];
         const lines = text.split(/\r?\n/);
         for (let line of lines) {
             if (!line.trim()) continue;
-            const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-            rows.push(values.map(v => v.replace(/^"|"$/g, '').trim()));
+            let row = [];
+            let curr = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') inQuotes = !inQuotes;
+                else if (line[i] === ',' && !inQuotes) { row.push(curr); curr = ''; }
+                else curr += line[i];
+            }
+            row.push(curr);
+            rows.push(row.map(v => v.replace(/^"|"$/g, '').trim()));
         }
         return rows;
     }
@@ -183,23 +190,29 @@
         const list = document.getElementById('market-list');
         list.innerHTML = '';
         
-        // Индексы: 1-Статус, 5-Имя, 6-Ассортимент, 8-Район, 9-Фото (Колонка J), 2-Invites(Username)
-        // ВАЖНО: Убедись, что колонка с ссылкой на фото у тебя идет 10-й по счету (Индекс 9)
         rows.slice(1).forEach(row => {
+            // Проверяем Колонку B (Статус)
             if (row[1] && row[1].trim() === 'Active') { 
-                const photoHtml = row[9] && row[9].startsWith('http') 
-                    ? `<img src="${row[9]}" class="seller-photo" alt="Фото улова">` 
+                
+                // Проверяем Колонку H (Фото - индекс 7)
+                const photoHtml = row[7] && row[7].startsWith('http') 
+                    ? `<img src="${row[7]}" class="seller-photo" alt="Фото улова">` 
                     : '';
                 
+                // Вытаскиваем юзернейм из Колонки F (индекс 5). Отрезаем "Имя / ", берем только последнее слово без @
+                const nameStr = row[5] || 'Рыбак';
+                const pureName = nameStr.split('/')[0].trim();
+                const pureUsername = nameStr.split('/').pop().replace('@', '').trim();
+
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
                         <div class="seller-info">
-                            <b>👤 ${row[5] || 'Рыбак'}</b> 
+                            <b>👤 ${pureName}</b> 
                             <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
                         </div>
                         <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Уточняйте наличие...'}</div>
-                        <button class="btn" style="padding:10px; font-size:13px;" onclick="window.open('https://t.me/${row[2]}')">💬 Написать продавцу</button>
+                        <button class="btn" style="padding:10px; font-size:13px;" onclick="window.open('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
                     </div>`;
             }
         });
@@ -210,9 +223,9 @@
         const seller = rows.find(r => r[0] && r[0].trim() == user.id.toString());
         
         if (seller) {
-            const status = seller[1] ? seller[1].trim() : 'Pending';
-            const friends = parseInt(seller[2]) || 0;
-            const link = seller[3] ? seller[3].trim() : '';
+            const status = seller[1] ? seller[1].trim() : 'Pending';     // B: Статус
+            const friends = parseInt(seller[2]) || 0;                    // C: Приглашено
+            const link = seller[3] ? seller[3].trim() : '';              // D: Инвайт-ссылка
 
             document.getElementById('ref-progress').style.width = Math.min((friends / 5) * 100, 100) + '%';
             document.getElementById('ref-status').innerText = `${friends} / 5 друзей вступило`;
@@ -226,11 +239,16 @@
             if (status === 'Active' || friends >= 5) {
                 document.getElementById('referral-block').style.display = 'none';
                 document.getElementById('seller-form').style.display = 'block';
+                
+                // G: Ассортимент (Индекс 6)
                 document.getElementById('items').value = seller[6] || '';
+                
+                // I: Район (Индекс 8)
                 document.getElementById('location').value = seller[8] || '';
-                // Показываем превью фото, если оно уже есть в базе
-                if (seller[9] && seller[9].startsWith('http')) {
-                    document.getElementById('preview').src = seller[9];
+                
+                // H: Фото (Индекс 7)
+                if (seller[7] && seller[7].startsWith('http')) {
+                    document.getElementById('preview').src = seller[7];
                     document.getElementById('preview').style.display = 'block';
                     document.getElementById('upload-text').innerText = "Изменить текущее фото";
                 }
@@ -288,7 +306,6 @@
         }
     }
 
-    // Подготовка и сжатие фото перед отправкой
     function processImage(input) {
         const file = input.files[0];
         if (!file) return;
@@ -300,7 +317,7 @@
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; // Оптимальный размер для скорости
+                const MAX_WIDTH = 800; 
                 let width = img.width, height = img.height;
                 
                 if (width > MAX_WIDTH) { 
@@ -313,8 +330,6 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Получаем строку и отрезаем заголовок Data URI. 
-                // Остается ЧИСТЫЙ Base64, готовый для Make.com!
                 const fullDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                 base64Photo = fullDataUrl.split(',')[1];
                 
@@ -327,7 +342,6 @@
         reader.readAsDataURL(file);
     }
 
-    // Отправка данных на второй вебхук
     async function saveData() {
         const btn = document.getElementById('save-btn');
         const user = tg.initDataUnsafe?.user;
@@ -341,7 +355,7 @@
             items: document.getElementById('items').value,
             location: document.getElementById('location').value,
             image_base64: base64Photo, 
-            image_name: `photo_${user.id}_${Date.now()}.jpg` // Уникальное имя для Google Drive
+            image_name: `photo_${user.id}_${Date.now()}.jpg` 
         };
 
         try {
@@ -366,7 +380,6 @@
         }
     }
 
-    // Запуск приложения
     init();
     </script>
 </body>

@@ -304,7 +304,7 @@
         const file = input.files[0];
         if (!file) return;
         
-        document.getElementById('upload-text').innerText = "⏳ Обработка фото...";
+        document.getElementById('upload-text').innerText = "⏳ Сжимаю фото...";
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -324,18 +324,21 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
+                // 1. Получаем полный Data URL
                 const fullDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                base64Photo = fullDataUrl.split(',')[1];
+                
+                // 2. ОТРЕЗАЕМ заголовок "data:image/jpeg;base64," 
+                // Мы берем всё, что идет ПОСЛЕ первой запятой
+                base64Photo = fullDataUrl.substring(fullDataUrl.indexOf(',') + 1);
                 
                 document.getElementById('preview').src = fullDataUrl;
                 document.getElementById('preview').style.display = 'block';
-                document.getElementById('upload-text').innerText = "Фото выбрано ✓";
+                document.getElementById('upload-text').innerText = "Фото готово ✓";
             }
             img.src = e.target.result;
         }
         reader.readAsDataURL(file);
     }
-
     async function saveData() {
         const btn = document.getElementById('save-btn');
         const user = tg.initDataUnsafe?.user;

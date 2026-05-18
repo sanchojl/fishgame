@@ -42,7 +42,7 @@
 
         .seller-item { border-bottom: 1px solid var(--border); padding: 15px 0; }
         .seller-item:last-child { border: none; }
-        .seller-photo { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: #0f172a; border: 1px solid var(--border); }
+        .seller-photo { width: 100%; height: 220px; object-fit: cover; border-radius: 14px; margin-bottom: 12px; background: #0f172a; border: 1px solid var(--border); }
         .seller-info { font-size: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
         .progress-container { background: #0f172a; border-radius: 12px; height: 12px; margin: 15px 0; overflow: hidden; border: 1px solid var(--border); }
@@ -138,7 +138,7 @@
 
     let base64Photo = "";
 
-    // Умный парсер CSV (защита от запятых и пустых колонок)
+    // Умный парсер CSV
     function parseCSV(text) {
         const rows = [];
         const lines = text.split(/\r?\n/);
@@ -166,7 +166,6 @@
                 document.getElementById('market-list').innerHTML = `
                     <div style="text-align:center; padding:20px;">
                         <p>⚠️ Телеграм не передал данные профиля.</p>
-                        <p style="font-size:12px; color:#94a3b8;">Пожалуйста, открывай приложение только через меню бота.</p>
                         <button class="btn" style="padding:10px; margin-top:10px;" onclick="location.reload()">Обновить страницу</button>
                     </div>`;
                 return;
@@ -191,34 +190,18 @@
         list.innerHTML = '';
         
         rows.slice(1).forEach(row => {
-            // row[1] - Статус (Колонка B), row[7] - Фото (Колонка H)
             if (row[1] && row[1].trim() === 'Active') { 
                 
-                let photoUrl = (row[7] || '').trim();
+                const photoUrl = (row[7] || '').trim(); // Фото из колонки H
                 
-                // УМНЫЙ ХАК: Вытаскиваем ID и делаем железобетонную ссылку через Thumbnail API
-                if (photoUrl.includes('drive.google.com')) {
-                    let fileId = "";
-                    if (photoUrl.includes('id=')) {
-                        fileId = photoUrl.split('id=')[1].split('&')[0];
-                    } else if (photoUrl.includes('/d/')) {
-                        fileId = photoUrl.split('/d/')[1].split('/')[0];
-                    }
-                    
-                    if (fileId) {
-                        photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-                    }
-                }
-
                 const photoHtml = photoUrl.startsWith('http') 
-                    ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Ошибка+доступа+к+фото'">` 
-                    : '<div style="height:10px;"></div>';
+                    ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Ошибка+загрузки+фото'">` 
+                    : '';
                 
-                const nameStr = row[5] || 'Рыбак';
+                const nameStr = row[5] || 'Рыбак'; 
                 const pureName = nameStr.split('/')[0].trim();
                 const pureUsername = nameStr.split('/').pop().replace('@', '').trim();
 
-                // ВАЖНО: Ниже в кнопке мы заменили window.open на tg.openTelegramLink
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
@@ -238,9 +221,9 @@
         const seller = rows.find(r => r[0] && r[0].trim() == user.id.toString());
         
         if (seller) {
-            const status = seller[1] ? seller[1].trim() : 'Pending';     // B: Статус
-            const friends = parseInt(seller[2]) || 0;                    // C: Приглашено
-            const link = seller[3] ? seller[3].trim() : '';              // D: Инвайт-ссылка
+            const status = seller[1] ? seller[1].trim() : 'Pending';     
+            const friends = parseInt(seller[2]) || 0;                    
+            const link = seller[3] ? seller[3].trim() : '';              
 
             document.getElementById('ref-progress').style.width = Math.min((friends / 5) * 100, 100) + '%';
             document.getElementById('ref-status').innerText = `${friends} / 5 друзей вступило`;
@@ -255,13 +238,9 @@
                 document.getElementById('referral-block').style.display = 'none';
                 document.getElementById('seller-form').style.display = 'block';
                 
-                // G: Ассортимент (Индекс 6)
-                document.getElementById('items').value = seller[6] || '';
+                document.getElementById('items').value = seller[6] || '';    
+                document.getElementById('location').value = seller[8] || ''; 
                 
-                // I: Район (Индекс 8)
-                document.getElementById('location').value = seller[8] || '';
-                
-                // H: Фото (Индекс 7)
                 if (seller[7] && seller[7].startsWith('http')) {
                     document.getElementById('preview').src = seller[7];
                     document.getElementById('preview').style.display = 'block';

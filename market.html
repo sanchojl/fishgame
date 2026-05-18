@@ -190,33 +190,51 @@
         list.innerHTML = '';
         
         rows.slice(1).forEach(row => {
+            // row[1] - Статус (B), row[7] - Фото (H), row[5] - Юзернейм (F), row[8] - Район (I), row[6] - Ассортимент (G)
             if (row[1] && row[1].trim() === 'Active') { 
                 
-                const photoUrl = (row[7] || '').trim(); // Фото из колонки H
-                
+                const photoUrl = (row[7] || '').trim();
                 const photoHtml = photoUrl.startsWith('http') 
                     ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Ошибка+загрузки+фото'">` 
                     : '';
                 
-                const nameStr = row[5] || 'Рыбак'; 
-                const pureName = nameStr.split('/')[0].trim();
-                const pureUsername = nameStr.split('/').pop().replace('@', '').trim();
+                // ЛОГИКА ОБРАБОТКИ ЮЗЕРНЕЙМА
+                const rawNameField = row[5] || ''; 
+                let username = "";
+
+                if (rawNameField.includes('/')) {
+                    // Если в таблице "Имя / Captain_krim"
+                    username = rawNameField.split('/').pop().trim();
+                } else {
+                    // Если в таблице просто "Captain_krim"
+                    username = rawNameField.trim();
+                }
+
+                // Очистка: убираем @, пробелы и проверяем на пустоту
+                username = username.replace('@', '').replace(/\s/g, '');
+                
+                const displayName = rawNameField.includes('/') 
+                    ? rawNameField.split('/')[0].trim() 
+                    : 'Рыбак';
 
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
                         <div class="seller-info">
-                            <b>👤 ${pureName}</b> 
+                            <b>👤 ${displayName}</b> 
                             <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
                         </div>
-                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Уточняйте наличие...'}</div>
-                        <button class="btn" style="padding:10px; font-size:13px;" onclick="tg.openTelegramLink('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
+                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Свежий улов!'}</div>
+                        
+                        <button class="btn" style="padding:10px; font-size:13px;" 
+                            onclick="tg.openTelegramLink('https://t.me/${username}')">
+                            💬 Написать продавцу
+                        </button>
                     </div>`;
             }
         });
-        if (!list.innerHTML) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:30px;">На рынке пока пусто... Будь первым!</p>';
+        if (!list.innerHTML) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:30px;">На рынке пока пусто...</p>';
     }
-
     async function checkSellerStatus(rows, user) {
         const seller = rows.find(r => r[0] && r[0].trim() == user.id.toString());
         

@@ -196,7 +196,7 @@
                 
                 let photoUrl = (row[7] || '').trim();
                 
-                // Если ссылка с Google Drive, вытягиваем только ID и делаем прямую ссылку
+                // УМНЫЙ ХАК: Вытаскиваем ID и делаем железобетонную ссылку через Thumbnail API
                 if (photoUrl.includes('drive.google.com')) {
                     let fileId = "";
                     if (photoUrl.includes('id=')) {
@@ -206,13 +206,13 @@
                     }
                     
                     if (fileId) {
-                        // Используем самый стабильный сервер для прямой отдачи картинок
-                        photoUrl = `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
+                        // Вот она, правильная и рабочая ссылка с ограничением ширины в 800px для скорости!
+                        photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
                     }
                 }
 
                 const photoHtml = photoUrl.startsWith('http') 
-                    ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Фото+загружается...'">` 
+                    ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Ошибка+доступа+к+фото'">` 
                     : '<div style="height:10px;"></div>';
                 
                 const nameStr = row[5] || 'Рыбак';
@@ -224,9 +224,9 @@
                         ${photoHtml}
                         <div class="seller-info">
                             <b>👤 ${pureName}</b> 
-                            <span style="color:var(--accent)">📍 ${row[8] || 'Керчь'}</span>
+                            <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
                         </div>
-                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Свежий улов!'}</div>
+                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Уточняйте наличие...'}</div>
                         <button class="btn" style="padding:10px; font-size:13px;" onclick="window.open('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
                     </div>`;
             }

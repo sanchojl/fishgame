@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Биржа Улова: Выложить</title>
+    <title>Рынок Улова: Выложить</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -173,6 +173,7 @@
         }
 
         function sendToMarket() {
+            alert("Кнопка нажата! Начинаю проверку..."); // ДОБАВЬ ЭТО
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             const btn = document.getElementById('submit-btn');
@@ -216,7 +217,7 @@
             }).catch(err => {
                 tg.showAlert("Ошибка! Проверь сеть.");
                 btn.disabled = false;
-                btn.innerText = "Выложить на биржу";
+                btn.innerText = "Выложить на Рынок";
             });
         }
     </script>

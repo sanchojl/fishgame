@@ -206,7 +206,6 @@
                     }
                     
                     if (fileId) {
-                        // Вот она, правильная и рабочая ссылка с ограничением ширины в 800px для скорости!
                         photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
                     }
                 }
@@ -219,6 +218,7 @@
                 const pureName = nameStr.split('/')[0].trim();
                 const pureUsername = nameStr.split('/').pop().replace('@', '').trim();
 
+                // ВАЖНО: Ниже в кнопке мы заменили window.open на tg.openTelegramLink
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
@@ -227,7 +227,7 @@
                             <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
                         </div>
                         <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Уточняйте наличие...'}</div>
-                        <button class="btn" style="padding:10px; font-size:13px;" onclick="window.open('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
+                        <button class="btn" style="padding:10px; font-size:13px;" onclick="tg.openTelegramLink('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
                     </div>`;
             }
         });

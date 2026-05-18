@@ -191,15 +191,30 @@
         list.innerHTML = '';
         
         rows.slice(1).forEach(row => {
-            // Проверяем Колонку B (Статус)
+            // row[1] - Статус (Колонка B), row[7] - Фото (Колонка H)
             if (row[1] && row[1].trim() === 'Active') { 
                 
-                // Проверяем Колонку H (Фото - индекс 7)
-                const photoHtml = row[7] && row[7].startsWith('http') 
-                    ? `<img src="${row[7]}" class="seller-photo" alt="Фото улова">` 
-                    : '';
+                let photoUrl = (row[7] || '').trim();
                 
-                // Вытаскиваем юзернейм из Колонки F (индекс 5). Отрезаем "Имя / ", берем только последнее слово без @
+                // Если ссылка с Google Drive, вытягиваем только ID и делаем прямую ссылку
+                if (photoUrl.includes('drive.google.com')) {
+                    let fileId = "";
+                    if (photoUrl.includes('id=')) {
+                        fileId = photoUrl.split('id=')[1].split('&')[0];
+                    } else if (photoUrl.includes('/d/')) {
+                        fileId = photoUrl.split('/d/')[1].split('/')[0];
+                    }
+                    
+                    if (fileId) {
+                        // Используем самый стабильный сервер для прямой отдачи картинок
+                        photoUrl = `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
+                    }
+                }
+
+                const photoHtml = photoUrl.startsWith('http') 
+                    ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Фото+загружается...'">` 
+                    : '<div style="height:10px;"></div>';
+                
                 const nameStr = row[5] || 'Рыбак';
                 const pureName = nameStr.split('/')[0].trim();
                 const pureUsername = nameStr.split('/').pop().replace('@', '').trim();
@@ -209,9 +224,9 @@
                         ${photoHtml}
                         <div class="seller-info">
                             <b>👤 ${pureName}</b> 
-                            <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
+                            <span style="color:var(--accent)">📍 ${row[8] || 'Керчь'}</span>
                         </div>
-                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Уточняйте наличие...'}</div>
+                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Свежий улов!'}</div>
                         <button class="btn" style="padding:10px; font-size:13px;" onclick="window.open('https://t.me/${pureUsername}')">💬 Написать продавцу</button>
                     </div>`;
             }

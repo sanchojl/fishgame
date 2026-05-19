@@ -215,7 +215,7 @@
                 const location = row[8] || 'Крым';
                 const description = row[6] || 'Уточняйте наличие...';
 
-                // ВАЖНО: Кнопка с хаком для открытия
+                // Вывод карточки с обработчиком клика
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
@@ -239,6 +239,9 @@
         const seller = rows.find(r => r[0] && r[0].trim() == user.id.toString());
         
         if (seller) {
+            // Если юзер найден в базе, снимаем блокировку вебхука
+            localStorage.removeItem('reg_sent_time');
+
             const status = seller[1] ? seller[1].trim() : 'Pending';     
             const friends = parseInt(seller[2]) || 0;                    
             const link = seller[3] ? seller[3].trim() : '';              
@@ -246,10 +249,10 @@
             document.getElementById('ref-progress').style.width = Math.min((friends / 5) * 100, 100) + '%';
             document.getElementById('ref-status').innerText = `${friends} / 5 друзей вступило`;
             
-            if (link) {
+            if (link && link !== "Ожидание") {
                 document.getElementById('invite-link').innerText = link;
             } else {
-                document.getElementById('invite-link').innerHTML = "<i>Генерируем ссылку... Зайди через 5 мин.</i>";
+                document.getElementById('invite-link').innerHTML = "<i>Генерируем ссылку... Зайди через пару минут.</i>";
             }
 
             if (status === 'Active' || friends >= 5) {
@@ -266,16 +269,24 @@
                 }
             }
         } else {
-            if (sessionStorage.getItem('reg_sent')) {
-                document.getElementById('invite-link').innerHTML = "<i>Регистрация в процессе...<br>Обновление базы займет 5 минут.</i>";
+            // Логика защиты от спама Make
+            const lastRegTime = localStorage.getItem('reg_sent_time');
+            const now = Date.now();
+            
+            // Если с момента последней попытки регистрации прошло меньше 10 минут (600000 мс)
+            if (lastRegTime && (now - parseInt(lastRegTime) < 600000)) {
+                document.getElementById('invite-link').innerHTML = "<i>Регистрация в процессе...<br>Обновление базы может занять до 10 минут.</i>";
                 return;
             }
+            
             registerNewSeller(user);
         }
     }
 
     async function registerNewSeller(user) {
-        sessionStorage.setItem('reg_sent', 'true'); 
+        // Запоминаем время, когда отправили вебхук
+        localStorage.setItem('reg_sent_time', Date.now().toString()); 
+        
         try {
             const res = await fetch(WEBHOOK_REG, {
                 method: 'POST',
@@ -292,7 +303,7 @@
             }
         } catch (e) {
             console.error("Ошибка рега", e);
-            sessionStorage.removeItem('reg_sent'); 
+            localStorage.removeItem('reg_sent_time'); // Разрешаем попробовать снова при ошибке
         }
     }
 
@@ -392,10 +403,10 @@
         }
     }
 
-    // Хак для надежного открытия чатов
+    // Исправленная и защищенная функция связи
     function handleContact(username) {
-        if (!username) {
-            tg.showAlert("К сожалению, продавец не указал свой юзернейм в таблице.");
+        if (!username || username === "Ожидание" || username.trim() === "") {
+            tg.showAlert("Продавец еще не указал свой контакт или ссылка формируется. Попробуйте позже!");
             return;
         }
 

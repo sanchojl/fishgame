@@ -138,7 +138,6 @@
 
     let base64Photo = "";
 
-    // Умный парсер CSV
     function parseCSV(text) {
         const rows = [];
         const lines = text.split(/\r?\n/);
@@ -190,7 +189,6 @@
         list.innerHTML = '';
         
         rows.slice(1).forEach(row => {
-            // row[1] - Статус (B), row[7] - Фото (H), row[5] - Юзернейм (F), row[8] - Район (I), row[6] - Ассортимент (G)
             if (row[1] && row[1].trim() === 'Active') { 
                 
                 const photoUrl = (row[7] || '').trim();
@@ -198,43 +196,46 @@
                     ? `<img src="${photoUrl}" class="seller-photo" onerror="this.src='https://placehold.co/400x200/1e293b/fbbf24?text=Ошибка+загрузки+фото'">` 
                     : '';
                 
-                // ЛОГИКА ОБРАБОТКИ ЮЗЕРНЕЙМА
                 const rawNameField = row[5] || ''; 
                 let username = "";
 
                 if (rawNameField.includes('/')) {
-                    // Если в таблице "Имя / Captain_krim"
                     username = rawNameField.split('/').pop().trim();
                 } else {
-                    // Если в таблице просто "Captain_krim"
                     username = rawNameField.trim();
                 }
 
-                // Очистка: убираем @, пробелы и проверяем на пустоту
+                // Чистим ник
                 username = username.replace('@', '').replace(/\s/g, '');
                 
                 const displayName = rawNameField.includes('/') 
                     ? rawNameField.split('/')[0].trim() 
                     : 'Рыбак';
 
+                const location = row[8] || 'Крым';
+                const description = row[6] || 'Уточняйте наличие...';
+
+                // ВАЖНО: Кнопка обернута в тег <a> для 100% открытия чата
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
                         <div class="seller-info">
                             <b>👤 ${displayName}</b> 
-                            <span style="color:var(--accent)">📍 ${row[8] || 'Крым'}</span>
+                            <span style="color:var(--accent)">📍 ${location}</span>
                         </div>
-                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${row[6] || 'Свежий улов!'}</div>
+                        <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${description}</div>
                         
-                        <button class="btn" style="padding:10px; font-size:13px;" 
-                            onclick="tg.openTelegramLink('https://t.me/${username}')">
-                            💬 Написать продавцу
-                        </button>
+                        <a href="https://t.me/${username}" target="_blank" style="text-decoration: none; display: block; width: 100%;">
+                            <button class="btn" style="padding:10px; font-size:13px; width: 100%;">
+                                💬 Написать продавцу (${username})
+                            </button>
+                        </a>
                     </div>`;
             }
         });
-        if (!list.innerHTML) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:30px;">На рынке пока пусто...</p>';
+        if (!list.innerHTML) list.innerHTML = '<p style="text-align:center; color:#94a3b8; margin-top:30px;">На рынке пока пусто... Будь первым!</p>';
     }
+
     async function checkSellerStatus(rows, user) {
         const seller = rows.find(r => r[0] && r[0].trim() == user.id.toString());
         
@@ -342,14 +343,10 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // 1. Получаем полный Data URL
-                const fullDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                // ВАЖНО: Для HTTP модуля ImgBB оставляем полный Base64 вместе с заголовком!
+                base64Photo = canvas.toDataURL('image/jpeg', 0.6);
                 
-                // 2. ОТРЕЗАЕМ заголовок "data:image/jpeg;base64," 
-                // Мы берем всё, что идет ПОСЛЕ первой запятой
-                base64Photo = fullDataUrl.substring(fullDataUrl.indexOf(',') + 1);
-                
-                document.getElementById('preview').src = fullDataUrl;
+                document.getElementById('preview').src = base64Photo;
                 document.getElementById('preview').style.display = 'block';
                 document.getElementById('upload-text').innerText = "Фото готово ✓";
             }
@@ -357,6 +354,7 @@
         }
         reader.readAsDataURL(file);
     }
+
     async function saveData() {
         const btn = document.getElementById('save-btn');
         const user = tg.initDataUnsafe?.user;

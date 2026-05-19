@@ -215,7 +215,7 @@
                 const location = row[8] || 'Крым';
                 const description = row[6] || 'Уточняйте наличие...';
 
-                // ВАЖНО: Кнопка обернута в тег <a> для 100% открытия чата
+                // ВАЖНО: Кнопка с хаком для открытия
                 list.innerHTML += `
                     <div class="seller-item">
                         ${photoHtml}
@@ -225,11 +225,10 @@
                         </div>
                         <div style="font-size:14px; color:#e2e8f0; white-space: pre-wrap; line-height: 1.4; margin-bottom:12px;">${description}</div>
                         
-                        <a href="https://t.me/${username}" target="_blank" style="text-decoration: none; display: block; width: 100%;">
-                            <button class="btn" style="padding:10px; font-size:13px; width: 100%;">
-                                💬 Написать продавцу (${username})
-                            </button>
-                        </a>
+                        <button class="btn" style="padding:10px; font-size:13px; width: 100%;" 
+                            onclick="handleContact('${username}')">
+                            💬 Написать продавцу
+                        </button>
                     </div>`;
             }
         });
@@ -391,6 +390,25 @@
             btn.disabled = false;
             btn.innerText = "🚀 Сохранить изменения";
         }
+    }
+
+    // Хак для надежного открытия чатов
+    function handleContact(username) {
+        if (!username) {
+            tg.showAlert("К сожалению, продавец не указал свой юзернейм.");
+            return;
+        }
+
+        // Даем виброотклик
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        
+        // Используем чистый метод Telegram WebApp
+        tg.openTelegramLink('https://t.me/' + username);
+        
+        // Дублируем через схему tg:// для надежности
+        setTimeout(() => {
+            window.location.href = 'tg://resolve?domain=' + username;
+        }, 500);
     }
 
     init();

@@ -394,22 +394,23 @@
 
     // Хак для надежного открытия чатов
     function handleContact(username) {
-    if (!username) {
-        tg.showAlert("Продавец не указал юзернейм.");
-        return;
-    }
+        if (!username) {
+            tg.showAlert("К сожалению, продавец не указал свой юзернейм в таблице.");
+            return;
+        }
 
-    // Виброотклик
-    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-    // ХАК: Прямой вызов системного протокола Telegram
-    // Это заставляет систему ОС "подхватить" ссылку и открыть чат вне WebApp
-    try {
-        window.location.href = 'tg://resolve?domain=' + username;
-    } catch (err) {
-        console.error("Ошибка открытия чата:", err);
+        // Даем виброотклик
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        
+        try {
+            // 1. Официальный метод Телеграма для WebApp
+            tg.openTelegramLink('https://t.me/' + username);
+        } catch (e) {
+            console.error("openTelegramLink не сработал", e);
+            // 2. Бронебойный метод: открываем обычную ссылку, телефон сам поймет, что это Телеграм
+            tg.openLink('https://t.me/' + username);
+        }
     }
-}
 
     init();
     </script>
